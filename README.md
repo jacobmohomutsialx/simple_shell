@@ -2,9 +2,9 @@
 
 
 ## Description
+0x16. C - Simple Shell - Compile your own shell using Cprogramming language
 
-
-# Boiler late
+# Boilerplate
  - Create repo
  - Add contributor
  - Monitor commits
