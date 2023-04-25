@@ -1,51 +1,101 @@
-#include "main.h"
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <string.h>
+#include <sys/wait.h>
+#include <sys/types.h>
 
-
-void free_data(data_store *stash)
-{
-
-	free(stash->pid);
-}
+#define MAX_COMMAND_LENGTH 1024
 
 /**
- * set_data - Initialize data structure
+ * main - check the code
+ * @command:  char array to store the user input command string
+ * @line_buffer: a pointer to a char array which
+ * 	      will be used to store the user's input from the command line
  *
- * @datash: data structure
- * @av: argument vector
- * Return: no return
- */
-void set_data(data_store *stash, char **av)
-{
-
-	stash->av = av;
-	stash->input = NULL;
-	stash->args = NULL;
-	stash->status = 0;
-	stash->counter = 1;
-
-	stash->pid = getpid();
-}
-
-
-/**
- * main - program entry point
- * 
- * @ac - number of arguments
- * @av - argument
- * 
- * Return: 0 Success
+ *
+ * Return: Always 0.
  */
 
-int main(int ac, char **av)
+int main()
 {
-	data_store stash;
-	(void) ac;
-	(void) av;
+	/* char command[MAX_COMMAND_LENGTH]; */
+	ssize_t command_len = 0; 
+	char *line_buffer = NULL;
+	pid_t pid;
+	size_t line_buffer_size = 0;
+	
+	while(1) 
+	{
+		/* print the prompt */
+		write(STDOUT_FILENO, "#cisfun$ ", 9);
 
-	set_data(&stash, av);
-	main_loop(&stash);
-	free_data(&stash);
-	if (stash.status < 0)
-		return (255);
-	return (stash.status);
+		/* read the command */
+		/* ssize_t command_len = 0; */
+		/* char *line_buffer = NULL; */
+		/* command_len = getline(&line_buffer, &command_len, stdin); */
+		/*command_len = getline(&line_buffer, &line_buffer_size, stdin, &command_len); */
+		command_len = getline(&line_buffer, &line_buffer_size, stdin);
+
+		if (command_len == -1)
+		{
+			if (feof(stdin))
+			{
+				/* end of file condition */
+                		exit(EXIT_SUCCESS);
+            		}
+			else 
+			{
+                		perror("getline");
+                		exit(EXIT_FAILURE);
+            		}
+        	}
+
+        	/* remove trailing newline character from the command */
+        	if (command_len > 0 && line_buffer[command_len-1] == '\n') 
+		{
+            		line_buffer[command_len-1] = '\0';
+        	}
+
+		/* fork a child process to execute the command */
+       	 	pid = fork();
+
+        	if (pid < 0)
+		{
+            		perror("fork");
+            		exit(EXIT_FAILURE);
+        	}
+
+		else if (pid == 0) 
+		{
+            		/* child process */
+
+            		/* split the command into words using strtok */
+            		char *token = strtok(line_buffer, " ");
+
+            		/* execute the command */
+            		if (access(token, X_OK) == 0)
+			{
+            			execve(token, &token, NULL);
+                		/* execve only returns if an error occurs */
+                		perror("execve");
+                		exit(EXIT_FAILURE);
+            		}
+			else
+			{
+                		write(STDERR_FILENO, "Command not found\n", 18);
+                		exit(EXIT_FAILURE);
+            		}
+        	}
+		else
+		{
+            		/* parent process */
+            		waitpid(pid, NULL, 0);
+        	}
+
+        	/* free the memory allocated by getline*/
+        	free(line_buffer);
+	}
+
+	return 0;
 }
