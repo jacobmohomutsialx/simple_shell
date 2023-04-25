@@ -1,9 +1,10 @@
 #include <stdio.h>
 #include <unistd.h>
+#include <main.h>
 
 
 /**
- * _putchar -writes the character c to stdout
+ * _putchar- writes the character c to stdout
  *
  * @c: character to be printed
  *
@@ -19,13 +20,13 @@ int _putchar(char c)
 
 
 /**
- * main - prints sqaure pattern using '*'
+ * printSquare- prints sqaure pattern using '*'
  *
  * Return: Always 0.
  */
 
 
-int main(void)
+int printSquare(void)
 {
 	int size = 4;
 	int i, j;
